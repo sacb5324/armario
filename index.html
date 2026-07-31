@@ -144,7 +144,7 @@ tr:last-child td{border-bottom:none}
 
   <div class="panel" id="p4">
     <div class="note"><b>Qué hace este archivo.</b> Guarda 110 referencias de tu perfil de Pinterest ya etiquetadas: prendas, colores, formalidad de 1 a 5, estilo y temporada. Cuando escribes una situación, el motor la traduce a esos mismos campos y puntúa cada referencia. Todo ocurre en tu navegador: no hay servidor, no hay llamadas a ninguna IA, no consume nada. Lo unico que se descarga de internet son las fotos de referencia de Pinterest.</div>
-    <div class="note"><b>Cómo puntúa.</b> Prenda ancla que mencionas: +4. Cada color coincidente: +2. Estilo: +3. Formalidad dentro del rango de la ocasión: +2 (fuera de rango: −2). Temporada: +1. Se muestran las mejores seis y cada tarjeta explica por qué salió.</div>
+    <div class="note"><b>Cómo puntúa.</b> Prenda ancla que mencionas: +4. Cada color coincidente: +2. Estilo: +3. Formalidad dentro del rango de la ocasión: +2 (fuera de rango: −2). Temporada: +1. Siempre se muestran al menos seis opciones: si menos de seis superan el umbral, se completan con las mas cercanas y quedan marcadas como aproximadas. Cuando hay muchas coincidencias buenas se muestran hasta doce. Cada tarjeta explica por que salio.</div>
     <div class="note"><b>Lo que todavía falta.</b> Tu morfología y coloración personal (de las fotos de NotebookLM) y tu guardarropa real. Con eso el sistema deja de recomendar referencias bonitas y empieza a recomendar lo que puedes ponerte hoy, con tus proporciones. El catálogo también crece: en tu perfil hay bastante más de 30 pines.</div>
   </div>
 </div>
@@ -370,10 +370,20 @@ function render(qRaw){
   read.style.display="block";
   read.innerHTML=bits.length?("Leí esto: "+bits.join(" · ")):"No reconocí ocasión, estilo ni prendas. Prueba mencionando una prenda concreta, un color y para qué es.";
 
-  const ranked=DB.map(d=>({d,...score(d,p)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,6);
+  const todos=DB.map(d=>({d,...score(d,p)})).sort((a,b)=>b.s-a.s);
+  let ranked=todos.filter(x=>x.s>0);
+  // garantia de 6: si el filtro estricto deja menos, se completa con lo mas cercano
+  if(ranked.length<6){
+    const faltan=6-ranked.length;
+    const resto=todos.filter(x=>x.s<=0).slice(0,faltan).map(x=>({...x,flojo:true}));
+    ranked=ranked.concat(resto);
+  }
+  ranked=ranked.slice(0,Math.max(6,Math.min(12,ranked.filter(x=>x.s>0).length)));
   const res=document.getElementById("res");
   if(!ranked.length){res.innerHTML='<div class="empty">Nada en el catálogo alcanza esa combinación. Con 30 referencias es normal; al ampliar a todo tu perfil esto casi no pasará.</div>';return;}
-  res.innerHTML='<div class="grid">'+ranked.map((x,i)=>card(x.d,x.s,x.why,i===0)).join("")+'</div>';
+  const fuertes=ranked.filter(x=>!x.flojo).length;
+  const aviso=fuertes<6?'<div class="readout" style="border-left:3px solid #a33">Solo '+fuertes+' referencia'+(fuertes==1?'':'s')+' encaja'+(fuertes==1?'':'n')+' de verdad con lo que pediste. Completo hasta seis con lo mas parecido, marcado abajo, para que igual tengas de donde elegir.</div>':'';
+  res.innerHTML=aviso+'<div class="grid">'+ranked.map((x,i)=>card(x.d,x.s,x.why,i===0&&!x.flojo,x.flojo)).join("")+'</div>';
 }
 
 function mine(d){
@@ -387,10 +397,10 @@ function mine(d){
   });
   return out.slice(0,5);
 }
-function card(d,s,why,top){
+function card(d,s,why,top,flojo){
   const mm=(s!==null)?mine(d):[];
   return '<div class="card"><div class="ph"><img loading="lazy" src="'+IMG(d)+'" alt="'+d.t+'">'+(s!==null?'<span class="sc">'+(top?"★ ":"")+s+'</span>':'')+'</div>'+
-  '<div class="bd"><h3>'+d.t+'</h3>'+
+  '<div class="bd">'+(flojo?'<div style="font-size:11px;color:#a33;font-weight:600">alternativa aproximada</div>':'')+'<h3>'+d.t+'</h3>'+
   '<div class="tags">'+d.es.map(e=>'<span class="tg m">'+e+'</span>').join("")+d.co.slice(0,3).map(c=>'<span class="tg">'+c+'</span>').join("")+'<span class="tg">form. '+d.f+'/5</span></div>'+
   (why&&why.length?'<div class="why">'+why.join(" · ")+'</div>':'')+(mm.length?'<div class="why"><b>Con tu ropa:</b> '+mm.map(w=>w.n).join(', ')+'</div>':'')+
   '<a href="'+PIN(d)+'" target="_blank" rel="noopener">Ver el pin ↗</a></div></div>';
