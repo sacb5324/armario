@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#faf8f5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Armario">
+<title>Armario · Sistema de outfits de Sergio</title>
+<style>
+:root{
+  --bg:#faf8f5; --card:#fff; --ink:#1c1a17; --mut:#6f6656; --line:#e6e0d6;
+  --acc:#8a6f4d; --acc2:#3d4a3a; --warn:#a33; color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{padding:22px 24px 14px;border-bottom:1px solid var(--line);background:#fff}
+h1{margin:0;font-size:21px;letter-spacing:-.02em}
+.sub{color:var(--mut);font-size:13px;margin-top:3px}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 24px 60px}
+.tabs{display:flex;gap:4px;margin:18px 0 20px;border-bottom:1px solid var(--line)}
+.tab{padding:9px 16px;cursor:pointer;border:none;background:none;font:inherit;color:var(--mut);border-bottom:2px solid transparent}
+.tab.on{color:var(--ink);border-bottom-color:var(--acc);font-weight:600}
+.panel{display:none}.panel.on{display:block}
+.ask{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+textarea{flex:1;min-width:280px;min-height:78px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff;resize:vertical}
+button.go{padding:12px 22px;border:none;border-radius:10px;background:var(--ink);color:#fff;font:600 15px inherit;cursor:pointer}
+button.go:hover{background:#000}
+.chips{margin:12px 0 4px;display:flex;gap:7px;flex-wrap:wrap}
+.chip{padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;font-size:13px;color:var(--mut)}
+.chip:hover{border-color:var(--acc);color:var(--acc)}
+.readout{margin:16px 0;padding:11px 14px;background:#fff;border:1px solid var(--line);border-radius:10px;font-size:13.5px;color:var(--mut)}
+.readout b{color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.card .ph{aspect-ratio:3/4;background:#efeae2;overflow:hidden;position:relative}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.card .sc{position:absolute;top:8px;right:8px;background:rgba(28,26,23,.86);color:#fff;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:999px}
+.card .bd{padding:11px 13px 13px;display:flex;flex-direction:column;gap:7px;flex:1}
+.card h3{margin:0;font-size:14px;line-height:1.35}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tg{font-size:11px;padding:2px 7px;border-radius:5px;background:#f2ede5;color:var(--mut)}
+.tg.m{background:#e4ecdf;color:var(--acc2);font-weight:600}
+.why{font-size:12.5px;color:var(--mut);border-top:1px dashed var(--line);padding-top:7px}
+.card a{font-size:12.5px;color:var(--acc);text-decoration:none;margin-top:auto}
+.card a:hover{text-decoration:underline}
+.empty{padding:34px;text-align:center;color:var(--mut);background:#fff;border:1px dashed var(--line);border-radius:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+input[type=text],select{padding:9px 11px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);font-size:13.5px}
+th{background:#f5f1ea;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+tr:last-child td{border-bottom:none}
+.del{color:var(--warn);cursor:pointer;border:none;background:none;font:inherit}
+.note{background:#fff;border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:8px;padding:13px 15px;font-size:13.5px;color:var(--mut);margin:14px 0}
+.note b{color:var(--ink)}
+.stat{display:flex;gap:26px;flex-wrap:wrap;margin:14px 0}
+.stat div span{display:block;font-size:23px;font-weight:700}
+.stat div small{color:var(--mut);font-size:12px}
+
+@media (max-width:700px){
+  header{padding:14px 16px 10px;position:sticky;top:0;z-index:5}
+  h1{font-size:18px}
+  .sub{font-size:11.5px}
+  .wrap{padding:12px 14px 80px}
+  .tabs{margin:10px 0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:10px 13px;font-size:14px;white-space:nowrap;flex:0 0 auto}
+  .ask{flex-direction:column;gap:8px}
+  textarea{width:100%;min-width:0;min-height:88px;font-size:16px}
+  button.go{width:100%;padding:14px}
+  .chips{gap:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{white-space:nowrap;flex:0 0 auto;font-size:12.5px}
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .card h3{font-size:12.5px}
+  .card .bd{padding:8px 9px 10px;gap:5px}
+  .tg{font-size:10px;padding:2px 5px}
+  .why{font-size:11.5px}
+  .card a{font-size:11.5px}
+  .stat{gap:14px}
+  .stat div span{font-size:18px}
+  .row{gap:7px}
+  input[type=text],select{font-size:16px;flex:1 1 auto;min-width:0}
+  table{font-size:12px}
+  th,td{padding:7px 8px}
+  .note{padding:11px 12px;font-size:12.5px}
+}
+@media (max-width:380px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header>
+  <h1>Armario</h1>
+  <div class="sub">Sistema de outfits de Sergio · 30 referencias de tu Pinterest · 45 prendas de tu guardarropa</div>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab on" data-p="p1">Armar outfit</button>
+    <button class="tab" data-p="p2">Mi guardarropa</button>
+    <button class="tab" data-p="p3">Catálogo</button>
+    <button class="tab" data-p="p4">Cómo funciona</button>
+  </div>
+
+  <div class="panel on" id="p1">
+    <div class="ask">
+      <textarea id="q" placeholder="Ej: tengo una reunión de amigos, quiero ir old money y usar mi abrigo beige"></textarea>
+      <button class="go" id="btn">Armar</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="readout" id="read" style="display:none"></div>
+    <div id="res"></div>
+  </div>
+
+  <div class="panel" id="p2">
+    <div class="note"><b>45 prendas catalogadas</b> a partir de las fotos que subiste a Drive. Las imagenes no se publican aqui: sirven solo para etiquetar la ropa y alimentar el motor. Lo que ves es el inventario que el sistema usa para decirte con que prendas tuyas armar cada outfit.</div>
+    <div class="row">
+      <input type="text" id="wn" placeholder="Prenda (ej. abrigo beige)" size="24">
+      <select id="wt">
+        <option value="abrigo">Abrigo / sobretodo</option>
+        <option value="chaqueta">Chaqueta / overshirt</option>
+        <option value="saco">Saco / blazer</option>
+        <option value="sueter">Suéter / knit</option>
+        <option value="camisa">Camisa</option>
+        <option value="polo">Polo</option>
+        <option value="camiseta">Camiseta</option>
+        <option value="pantalon">Pantalón</option>
+        <option value="jeans">Jeans</option>
+        <option value="zapatos">Zapatos</option>
+        <option value="zapatillas">Zapatillas</option>
+        <option value="accesorio">Accesorio</option>
+      </select>
+      <input type="text" id="wc" placeholder="Color (beige, olivo...)" size="16">
+      <button class="go" id="wadd" style="padding:9px 16px">Agregar</button>
+    </div>
+    <div id="wlist"></div>
+  </div>
+
+  <div class="panel" id="p3">
+    <div class="stat" id="stats"></div>
+    <div class="grid" id="cat"></div>
+  </div>
+
+  <div class="panel" id="p4">
+    <div class="note"><b>Qué hace este archivo.</b> Guarda 30 referencias de tu perfil de Pinterest ya etiquetadas: prendas, colores, formalidad de 1 a 5, estilo y temporada. Cuando escribes una situación, el motor la traduce a esos mismos campos y puntúa cada referencia. Todo ocurre en tu navegador: no hay servidor, no hay llamadas a ninguna IA, no consume nada. Lo unico que se descarga de internet son las fotos de referencia de Pinterest.</div>
+    <div class="note"><b>Cómo puntúa.</b> Prenda ancla que mencionas: +4. Cada color coincidente: +2. Estilo: +3. Formalidad dentro del rango de la ocasión: +2 (fuera de rango: −2). Temporada: +1. Se muestran las mejores seis y cada tarjeta explica por qué salió.</div>
+    <div class="note"><b>Lo que todavía falta.</b> Tu morfología y coloración personal (de las fotos de NotebookLM) y tu guardarropa real. Con eso el sistema deja de recomendar referencias bonitas y empieza a recomendar lo que puedes ponerte hoy, con tus proporciones. El catálogo también crece: en tu perfil hay bastante más de 30 pines.</div>
+  </div>
+</div>
+
+<script>
+const DB=[
+{n:1,h:"43/d2/cb/43d2cbaffb3a65208300346bdb3464d0",p:"687432330675186408",t:"Business casual de otoño: suéter taupe sobre camisa",pr:["sueter","camisa","pantalon","zapatos"],co:["olivo","taupe","blanco","marron"],es:["smart casual","old money"],f:3,te:["otono","invierno"]},
+{n:2,h:"54/d5/72/54d57203ac0c0f863a9c629c6e08ef07",p:"687432330675186404",t:"Suéter crema sobre camisa con jeans azules",pr:["sueter","camisa","jeans","zapatillas"],co:["crema","beige","azul","blanco"],es:["smart casual","old money"],f:3,te:["otono","primavera"]},
+{n:3,h:"31/ed/64/31ed649d6def98ad89f83fb4b67e3ad2",p:"687432330675186383",t:"Camisa oxford celeste con pantalón olivo (flat lay)",pr:["camisa","pantalon","zapatos","accesorio"],co:["celeste","olivo","marron"],es:["old money","preppy"],f:4,te:["primavera","otono"]},
+{n:4,h:"9b/5b/a6/9b5ba6df66a7ceb51cb8237f90c3ef10",p:"687432330675186382",t:"Chaqueta de jean con camiseta blanca y chinos olivo",pr:["chaqueta","camiseta","pantalon","zapatillas"],co:["azul","blanco","olivo"],es:["casual"],f:2,te:["primavera","otono"]},
+{n:5,h:"1d/9b/5d/1d9b5d1613a2c4ff6970f921dda62cd0",p:"687432330675159849",t:"Guía: combinaciones old money con pantalón crema",pr:["guia"],co:["crema","beige","azul","verde","rosa"],es:["old money"],f:4,te:["primavera","verano"]},
+{n:6,h:"36/c1/1f/36c11ff0f77efdab1c5a99c155c1bec4",p:"687432330675159840",t:"Guía: 10 outfits old money (blazer, cachemira, lino)",pr:["guia"],co:["beige","azul","crema","verde"],es:["old money"],f:4,te:["otono","primavera"]},
+{n:7,h:"35/ac/bd/35acbd813167933171ba42b74b8f279f",p:"687432330675159817",t:"Chaqueta de gamuza tabaco, camisa celeste y jeans oscuros",pr:["chaqueta","camisa","jeans","zapatos"],co:["marron","camel","celeste","azul"],es:["smart casual","old money"],f:3,te:["otono","invierno"]},
+{n:8,h:"dd/46/22/dd46223c808747e61c7346230e9817dc",p:"687432330675159737",t:"Suéter de ochos olivo con pantalón crema y botas",pr:["sueter","pantalon","zapatos"],co:["olivo","crema","marron"],es:["old money"],f:3,te:["otono","invierno"]},
+{n:9,h:"0e/44/01/0e4401930a90dcd93de1f1a6db6d691a",p:"687432330675117389",t:"Blazer azul marino, camisa blanca y pantalón gris claro",pr:["saco","camisa","pantalon","zapatos"],co:["azul marino","blanco","gris","marron"],es:["old money","business casual","finance"],f:5,te:["todo el ano"]},
+{n:10,h:"15/bc/c2/15bcc278b8d2fc78633e7fc79c08ed71",p:"687432330675117383",t:"Suéter gris sobre camisa celeste con pantalón negro",pr:["sueter","camisa","pantalon","zapatillas"],co:["gris","celeste","negro","blanco"],es:["smart casual"],f:3,te:["otono","invierno"]},
+{n:11,h:"71/21/29/7121299346c00e7d57fa889bc6a64ffc",p:"687432330675082055",t:"Suéter azul marino sobre camisa, cinturón marrón",pr:["sueter","camisa","pantalon","accesorio"],co:["azul marino","celeste","marron","gris"],es:["business casual","old money"],f:4,te:["otono","invierno"]},
+{n:12,h:"a9/b4/4d/a9b44d36e8815492e83125d3ca59f795",p:"687432330675082053",t:"Suéter crema, pantalón olivo y mocasines marrones",pr:["sueter","pantalon","zapatos","abrigo"],co:["crema","beige","olivo","marron"],es:["old money","smart casual"],f:3,te:["otono","primavera"]},
+{n:13,h:"1d/2e/5b/1d2e5b69887f7c1eeb9cbafcbbaab2bd",p:"687432330675082051",t:"Polo negro con pantalón piedra amplio y zapatillas blancas",pr:["polo","pantalon","zapatillas"],co:["negro","piedra","beige","blanco"],es:["minimal","smart casual"],f:3,te:["verano","primavera"]},
+{n:14,h:"b7/24/b1/b724b1b18be07a64d33624b35d6b4061",p:"687432330675082042",t:"Overshirt olivo, camiseta negra y jeans anchos",pr:["chaqueta","camiseta","jeans","zapatillas"],co:["olivo","negro","azul"],es:["casual","streetwear"],f:2,te:["primavera","otono"]},
+{n:15,h:"1c/71/ce/1c71ceaa2eef30e095819b844ec62bab",p:"687432330675021717",t:"Guía: guardarropa cápsula masculino indispensable",pr:["guia"],co:["blanco","beige","azul","verde"],es:["capsula","minimal"],f:3,te:["todo el ano"]},
+{n:16,h:"d3/37/b9/d337b93465393daf55b9e7db47ac1998",p:"687432330675021711",t:"Camisa vino con pantalón gris carbón y zapatos marrones",pr:["camisa","pantalon","zapatos","accesorio"],co:["vino","gris","marron"],es:["business casual","smart casual"],f:4,te:["otono","invierno"]},
+{n:17,h:"01/46/ae/0146ae5b94257bebfca24f0199ac3782",p:"687432330675021705",t:"Blazer gris carbón sobre knit crema y pantalón negro",pr:["saco","sueter","pantalon"],co:["gris","crema","negro"],es:["smart casual","business casual"],f:4,te:["otono","invierno"]},
+{n:18,h:"38/4d/d6/384dd6b6abf278ccfd0cf509dcd48c4e",p:"687432330675016154",t:"Overshirt verde militar, camiseta blanca y jeans oscuros",pr:["chaqueta","camiseta","jeans","zapatos"],co:["verde","blanco","azul marino","marron"],es:["casual"],f:2,te:["primavera","otono"]},
+{n:19,h:"6a/15/b0/6a15b07a280a38e23fd4fa291db7655b",p:"687432330675016138",t:"Sobrecamisa marrón con camiseta blanca y chinos beige",pr:["chaqueta","camiseta","pantalon","zapatillas"],co:["marron","blanco","beige"],es:["casual","smart casual"],f:2,te:["otono","primavera"]},
+{n:20,h:"fd/30/2f/fd302f194dc6157a685e9b875936e50a",p:"687432330675016135",t:"Chaqueta camel, camiseta blanca y jeans claros",pr:["chaqueta","camiseta","jeans","accesorio"],co:["camel","beige","blanco","azul"],es:["casual"],f:1,te:["primavera","otono"]},
+{n:21,h:"e8/a1/c4/e8a1c4e583f76dbbdd34fb624b5b5cc2",p:"687432330675016115",t:"Suéter gris sobre camisa blanca con jeans negros",pr:["sueter","camisa","jeans","zapatillas"],co:["gris","blanco","negro"],es:["smart casual"],f:3,te:["otono","invierno"]},
+{n:22,h:"5d/78/55/5d78553274eedfe58a4317a3f001743b",p:"687432330675326600",t:"Monocromo marrón: sobrecamisa y pantalón a tono",pr:["chaqueta","camiseta","pantalon","zapatillas"],co:["marron","crema","blanco"],es:["casual","minimal"],f:2,te:["otono","primavera"]},
+{n:23,h:"55/fd/78/55fd78f9615d9b67a2bef53e6b1cf8f2",p:"687432330675258950",t:"Suéter camel con jeans oscuros y botas marrones",pr:["sueter","jeans","zapatos"],co:["camel","marron","azul marino"],es:["casual","smart casual"],f:2,te:["otono","invierno"]},
+{n:24,h:"1b/c0/34/1bc034211fa6f6104473e797c6f97fd1",p:"687432330675196980",t:"Suéter verde olivo con chinos beige y zapatillas blancas",pr:["sueter","pantalon","zapatillas"],co:["olivo","verde","beige","blanco"],es:["casual","smart casual"],f:2,te:["otono","primavera"]},
+{n:25,h:"f6/e8/ea/f6e8eaf6957fa8664e284907550b1ff6",p:"687432330675196974",t:"Sobrecamisa marrón abierta, camiseta blanca y jeans claros",pr:["chaqueta","camiseta","jeans","zapatillas"],co:["marron","blanco","azul"],es:["casual"],f:2,te:["primavera","verano"]},
+{n:26,h:"70/ce/0f/70ce0f948ae1e8c1c6837f965229828c",p:"687432330675186424",t:"Abrigo largo camel sobre knit crema y jeans claros",pr:["abrigo","sueter","jeans","zapatillas"],co:["camel","beige","crema","azul"],es:["smart casual","old money"],f:3,te:["invierno","otono"]},
+{n:27,h:"71/f6/b7/71f6b71065b20b163b127daee35823b3",p:"687432330675186412",t:"Cuatro variantes: polo verde con pantalón crema",pr:["polo","camisa","pantalon","accesorio"],co:["verde","olivo","crema","beige"],es:["old money","preppy"],f:3,te:["verano","primavera"]},
+{n:28,h:"21/94/e9/2194e9d7419b86aed2938f0dc51d31e8",p:"687432330675016105",t:"Camisa azul noche con jeans claros amplios",pr:["camisa","jeans","accesorio"],co:["azul marino","negro","azul"],es:["casual","minimal"],f:2,te:["verano","primavera"]},
+{n:29,h:"c8/14/cc/c814cc491ca765b46acae51ca1563b28",p:"687432330675016089",t:"Camisa de jean sobre camiseta blanca con pantalón olivo",pr:["camisa","camiseta","pantalon","zapatillas"],co:["azul","blanco","olivo"],es:["casual"],f:2,te:["primavera","otono"]},
+{n:30,h:"25/14/21/2514212397d830d2f6bcf7d1198f80b1",p:"687432330675016082",t:"Camisa celeste de jean con pantalón olivo",pr:["camisa","pantalon","zapatillas"],co:["celeste","azul","olivo","blanco"],es:["casual"],f:1,te:["primavera","verano"]}
+];
+
+
+const W=[
+{t:"pantalon",n:"Pantalon negro",c:["negro"]},
+{t:"pantalon",n:"Chino khaki",c:["beige","khaki"]},
+{t:"pantalon",n:"Pantalon arena",c:["beige","arena","crema"]},
+{t:"pantalon",n:"Pantalon marron topo",c:["marron","taupe"]},
+{t:"jeans",n:"Jeans azul oscuro",c:["azul marino","azul"]},
+{t:"jeans",n:"Jeans azul medio",c:["azul"]},
+{t:"jeans",n:"Jeans azul claro",c:["azul","celeste"]},
+{t:"abrigo",n:"Chaleco acolchado negro",c:["negro"]},
+{t:"polo",n:"Polo crema texturado",c:["crema","beige"]},
+{t:"pantalon",n:"Pantalon negro (2)",c:["negro"]},
+{t:"pantalon",n:"Pantalon camel",c:["camel","marron"]},
+{t:"zapatillas",n:"Zapatillas gris y blanco",c:["gris","blanco"]},
+{t:"zapatillas",n:"Zapatillas blancas",c:["blanco"]},
+{t:"zapatos",n:"Botines chelsea azul marino",c:["azul marino"]},
+{t:"abrigo",n:"Chaleco acolchado camel",c:["camel","beige"]},
+{t:"camisa",n:"Camisa manga larga beige",c:["beige","crema"]},
+{t:"camisa",n:"Camisa manga corta negra",c:["negro"]},
+{t:"camisa",n:"Camisa manga corta azul marino",c:["azul marino"]},
+{t:"camisa",n:"Camisa estampada gris y marron",c:["gris","marron"]},
+{t:"camisa",n:"Camisa manga corta camel",c:["camel","marron"]},
+{t:"camiseta",n:"Camiseta negra",c:["negro"]},
+{t:"camisa",n:"Camisa manga corta negra (2)",c:["negro"]},
+{t:"camiseta",n:"Camiseta verde salvia",c:["verde","olivo"]},
+{t:"camiseta",n:"Camiseta gris",c:["gris"]},
+{t:"camisa",n:"Camisa a cuadros verde y negro",c:["verde","negro"]},
+{t:"sueter",n:"Sueter taupe manga larga",c:["taupe","beige"]},
+{t:"camiseta",n:"Henley crema",c:["crema","blanco"]},
+{t:"zapatillas",n:"Zapatillas camel",c:["camel","marron"]},
+{t:"zapatillas",n:"Zapatillas gris y beige",c:["gris","beige"]},
+{t:"zapatillas",n:"Zapatillas negras",c:["negro"]},
+{t:"camisa",n:"Camisa cuello mao azul marino",c:["azul marino"]},
+{t:"zapatos",n:"Zapatos negros con cordones",c:["negro"]},
+{t:"zapatos",n:"Botines marron oscuro",c:["marron"]},
+{t:"zapatos",n:"Botines gris ante",c:["gris"]},
+{t:"zapatos",n:"Botines camel ante",c:["camel","marron"]},
+{t:"zapatillas",n:"Zapatillas blancas (2)",c:["blanco"]},
+{t:"zapatillas",n:"Zapatillas blancas retro",c:["blanco"]},
+{t:"zapatos",n:"Zapatos azul marino con cordones",c:["azul marino"]},
+{t:"zapatillas",n:"Zapatillas gris y azul",c:["gris","azul"]},
+{t:"pantalon",n:"Pantalon negro (3)",c:["negro"]},
+{t:"pantalon",n:"Pantalon crema",c:["crema","beige"]},
+{t:"pantalon",n:"Pantalon azul marino",c:["azul marino"]},
+{t:"pantalon",n:"Pantalon gris claro",c:["gris"]},
+{t:"camisa",n:"Camisa manga corta blanca",c:["blanco","crema"]},
+{t:"pantalon",n:"Pantalon salmon",c:["salmon","terracota"]}
+];
+const IMG=d=>"https://i.pinimg.com/564x/"+d.h+".jpg";
+const PIN=d=>"https://www.pinterest.com/pin/"+d.p+"/";
+
+const COLORS={beige:["beige","crema","camel","arena","hueso","piedra","tostado"],camel:["camel","beige","tostado","marron"],crema:["crema","beige","hueso","blanco"],olivo:["olivo","verde","militar"],verde:["verde","olivo","militar"],azul:["azul","celeste","denim"],celeste:["celeste","azul"],"azul marino":["azul marino","marino","navy","azul"],marron:["marron","chocolate","tabaco","camel"],gris:["gris","carbon","plomo"],negro:["negro"],blanco:["blanco","hueso"],vino:["vino","burdeos","granate","guinda"],piedra:["piedra","arena","beige"]};
+const GARMENTS={abrigo:["abrigo","sobretodo","gabardina","tapado"],chaqueta:["chaqueta","casaca","overshirt","sobrecamisa","cazadora"],saco:["saco","blazer","americana"],sueter:["sueter","sweater","chompa","knit","jersey","pulover","cachemira"],camisa:["camisa","oxford"],polo:["polo"],camiseta:["camiseta","polera","tshirt","t-shirt"],pantalon:["pantalon","chino","chinos","slack","sastre"],jeans:["jean","jeans","denim","vaquero"],zapatos:["zapato","mocasin","loafer","bota","botin","derby"],zapatillas:["zapatilla","sneaker","tenis"],accesorio:["cinturon","reloj","lentes","gafas","bolso","correa"]};
+const STYLES={"old money":["old money","quiet luxury","elegante","clasico","refinado","pituco"],"smart casual":["smart casual","arreglado","semiformal","presentable"],"business casual":["business casual","oficina","trabajo","chamba"],casual:["casual","relajado","informal","diario"],minimal:["minimal","minimalista","sobrio","simple"],streetwear:["street","streetwear","urbano"],preppy:["preppy","ivy","universitario"],finance:["finance","finance bro","ejecutivo"]};
+const OCC=[
+ {k:["reunion de amigos","amigos","juntada","salir con amigos","bar","cafe","almuerzo","paseo","fin de semana"],r:[1,3],l:"reunión informal"},
+ {k:["cita","date","salir con ella","aniversario","cena"],r:[2,4],l:"cita / cena"},
+ {k:["oficina","trabajo","chamba","reunion de trabajo","presentacion","entrevista"],r:[3,5],l:"oficina / trabajo"},
+ {k:["boda","matrimonio","evento","gala","formal","ceremonia"],r:[4,5],l:"evento formal"},
+ {k:["viaje","aeropuerto","universidad","clases","mandados"],r:[1,2],l:"día suelto"}
+];
+const SEASONS={verano:["verano","calor","caluroso"],invierno:["invierno","frio","helado"],otono:["otono","otoño","fresco"],primavera:["primavera","templado"]};
+
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+function parse(qRaw){
+  const q=norm(qRaw), out={col:[],gar:[],est:[],occ:null,tem:[],no:[]};
+  for(const g in GARMENTS) if(GARMENTS[g].some(w=>new RegExp("(sin|nada de|no quiero|evitar)\\s+(\\w+\\s+){0,2}"+norm(w)).test(q))) out.no.push(g);
+  for(const c in COLORS) if(COLORS[c].some(w=>q.includes(norm(w)))) out.col.push(c);
+  for(const g in GARMENTS) if(GARMENTS[g].some(w=>q.includes(norm(w)))&&!out.no.includes(g)) out.gar.push(g);
+  for(const e in STYLES) if(STYLES[e].some(w=>q.includes(norm(w)))) out.est.push(e);
+  for(const o of OCC) if(o.k.some(w=>q.includes(norm(w)))){out.occ=o;break;}
+  for(const s in SEASONS) if(SEASONS[s].some(w=>q.includes(norm(w)))) out.tem.push(s);
+  return out;
+}
+
+function score(d,p){
+  let s=0; const why=[];
+  const hitG=p.gar.filter(g=>d.pr.includes(g));
+  if(hitG.length){s+=4*hitG.length;why.push("incluye "+hitG.join(" y "));}
+  const dcol=d.co.map(norm);
+  const hitC=p.col.filter(c=>(COLORS[c]||[c]).some(v=>dcol.includes(norm(v))));
+  if(hitC.length){s+=2*hitC.length;why.push("paleta "+hitC.join(", "));}
+  const hitE=p.est.filter(e=>d.es.includes(e));
+  if(hitE.length){s+=3*hitE.length;why.push("registro "+hitE.join(", "));}
+  if(p.occ){ if(d.f>=p.occ.r[0]&&d.f<=p.occ.r[1]){s+=2;why.push("formalidad "+d.f+"/5 encaja");} else {s-=2;why.push("formalidad "+d.f+"/5 se sale del rango");} }
+  const hitT=p.tem.filter(t=>d.te.includes(t));
+  if(hitT.length){s+=1;why.push(hitT[0]);}
+  const bad=(p.no||[]).filter(g=>d.pr.includes(g));
+  if(bad.length){s-=6;why.push("ojo: lleva "+bad.join(" y "));}
+  if(d.pr.includes("guia")) s-=1;
+  return {s,why};
+}
+
+function render(qRaw){
+  const p=parse(qRaw);
+  const read=document.getElementById("read");
+  const bits=[];
+  if(p.occ)bits.push("<b>Ocasión:</b> "+p.occ.l+" (formalidad "+p.occ.r[0]+"–"+p.occ.r[1]+")");
+  if(p.est.length)bits.push("<b>Estilo:</b> "+p.est.join(", "));
+  if(p.gar.length)bits.push("<b>Prenda ancla:</b> "+p.gar.join(", "));
+  if(p.no.length)bits.push("<b>Descartar:</b> "+p.no.join(", "));
+  if(p.col.length)bits.push("<b>Color:</b> "+p.col.join(", "));
+  if(p.tem.length)bits.push("<b>Temporada:</b> "+p.tem.join(", "));
+  read.style.display="block";
+  read.innerHTML=bits.length?("Leí esto: "+bits.join(" · ")):"No reconocí ocasión, estilo ni prendas. Prueba mencionando una prenda concreta, un color y para qué es.";
+
+  const ranked=DB.map(d=>({d,...score(d,p)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,6);
+  const res=document.getElementById("res");
+  if(!ranked.length){res.innerHTML='<div class="empty">Nada en el catálogo alcanza esa combinación. Con 30 referencias es normal; al ampliar a todo tu perfil esto casi no pasará.</div>';return;}
+  res.innerHTML='<div class="grid">'+ranked.map((x,i)=>card(x.d,x.s,x.why,i===0)).join("")+'</div>';
+}
+
+function mine(d){
+  const out=[];
+  d.pr.forEach(t=>{
+    const cands=W.filter(w=>w.t===t);
+    if(!cands.length)return;
+    const dc=d.co.map(norm);
+    const hit=cands.filter(w=>w.c.some(c=>dc.includes(norm(c))));
+    (hit.length?hit:cands).slice(0,2).forEach(w=>out.push(w));
+  });
+  return out.slice(0,5);
+}
+function card(d,s,why,top){
+  const mm=(s!==null)?mine(d):[];
+  return '<div class="card"><div class="ph"><img loading="lazy" src="'+IMG(d)+'" alt="'+d.t+'">'+(s!==null?'<span class="sc">'+(top?"★ ":"")+s+'</span>':'')+'</div>'+
+  '<div class="bd"><h3>'+d.t+'</h3>'+
+  '<div class="tags">'+d.es.map(e=>'<span class="tg m">'+e+'</span>').join("")+d.co.slice(0,3).map(c=>'<span class="tg">'+c+'</span>').join("")+'<span class="tg">form. '+d.f+'/5</span></div>'+
+  (why&&why.length?'<div class="why">'+why.join(" · ")+'</div>':'')+(mm.length?'<div class="why"><b>Con tu ropa:</b> '+mm.map(w=>w.n).join(', ')+'</div>':'')+
+  '<a href="'+PIN(d)+'" target="_blank" rel="noopener">Ver el pin ↗</a></div></div>';
+}
+
+// wardrobe
+const WK="armario_sergio_v1";
+const wget=()=>{try{return JSON.parse(localStorage.getItem(WK)||"[]")}catch(e){return[]}};
+const wset=v=>localStorage.setItem(WK,JSON.stringify(v));
+function wrender(){
+  const el=document.getElementById("wlist");
+  const groups={pantalon:"Pantalones",jeans:"Jeans",camisa:"Camisas",camiseta:"Camisetas y knits",polo:"Polos",sueter:"Sueteres",abrigo:"Abrigos y chalecos",zapatos:"Zapatos y botines",zapatillas:"Zapatillas"};
+  let html="";
+  for(const g in groups){
+    const it=W.filter(w=>w.t===g);
+    if(!it.length)continue;
+    html+='<h3 style="margin:20px 0 8px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut)">'+groups[g]+' <span style="color:#c4bdb0">'+it.length+'</span></h3>';
+    html+='<div style="display:flex;flex-wrap:wrap;gap:7px">'+it.map(w=>'<span style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px"><b style="font-weight:600">'+w.n+'</b> <span style="color:var(--mut)">'+w.c.join(", ")+'</span></span>').join("")+'</div>';
+  }
+  const man=wget();
+  if(man.length){
+    html+='<h3 style="margin:20px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)">Agregadas a mano</h3>';
+    html+='<table><tr><th>Prenda</th><th>Tipo</th><th>Color</th><th></th></tr>'+man.map((x,i)=>'<tr><td>'+x.n+'</td><td>'+x.t+'</td><td>'+x.c+'</td><td><button class="del" data-i="'+i+'">quitar</button></td></tr>').join("")+'</table>';
+  }
+  el.innerHTML=html;
+  el.querySelectorAll(".del").forEach(b=>b.onclick=()=>{const w=wget();w.splice(+b.dataset.i,1);wset(w);wrender();});
+}
+document.getElementById("wadd").onclick=()=>{
+  const n=document.getElementById("wn").value.trim();
+  if(!n)return;
+  const w=wget();w.push({n,t:document.getElementById("wt").value,c:document.getElementById("wc").value.trim()||"—"});
+  wset(w);document.getElementById("wn").value="";document.getElementById("wc").value="";wrender();
+};
+
+// catalogue
+document.getElementById("cat").innerHTML=DB.map(d=>card(d,null,null,false)).join("");
+const cnt=k=>{const m={};DB.forEach(d=>d[k].forEach(v=>m[v]=(m[v]||0)+1));return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
+document.getElementById("stats").innerHTML=
+ '<div><span>'+DB.length+'</span><small>referencias</small></div>'+
+ '<div><span>'+cnt("es")[0][0]+'</span><small>estilo dominante</small></div>'+
+ '<div><span>'+cnt("co")[0][0]+'</span><small>color dominante</small></div>'+
+ '<div><span>'+(DB.reduce((a,d)=>a+d.f,0)/DB.length).toFixed(1)+'</span><small>formalidad media /5</small></div>';
+
+// chips + tabs
+const EX=["reunión de amigos, old money, con mi abrigo beige","cita de noche, algo sobrio con jeans","oficina, business casual sin saco","fin de semana casual con pantalón olivo","verano, algo fresco y minimal"];
+document.getElementById("chips").innerHTML=EX.map(e=>'<span class="chip">'+e+'</span>').join("");
+document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{document.getElementById("q").value=c.textContent;render(c.textContent);});
+document.getElementById("btn").onclick=()=>render(document.getElementById("q").value);
+document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))render(e.target.value);});
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("on"));
+  t.classList.add("on");document.getElementById(t.dataset.p).classList.add("on");
+});
+wrender();
+</script>
+</body>
+</html>
