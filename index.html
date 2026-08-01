@@ -344,19 +344,42 @@ function parse(raw){
     else o.no=[...new Set([...o.no,...o.occ.veto])];
   }
   for(const s in SEASONS) if(SEASONS[s].some(w=>q.includes(norm(w)))) o.tem.push(s);
-  // prenda ancla: tipo mencionado + color mencionado -> prendas concretas
+  /* Prendas obligatorias. Antes todos los tipos y todos los colores mencionados
+     caian en un mismo saco y bastaba con que UNA de esas prendas entrara: pedir
+     "abrigo camel con pantalon olivo" honraba una de las dos y la otra se perdia,
+     y ademas cruzaba colores con prendas equivocadas. Ahora la frase se trocea
+     por conectores, cada trozo lleva su color pegado a su prenda, y el outfit
+     tiene que cumplir TODOS los grupos. Dos prendas del mismo hueco (camisa y
+     camiseta, las dos van arriba) se funden en un solo grupo de alternativas,
+     porque exigir las dos a la vez no dejaria ningun outfit posible. */
+  o.grupos=[];
   if(o.gar.length){
-    W.forEach(w=>{
-      if(!o.gar.includes(w.t)) return;
-      if(o.col.length && !w._f.some(f=>o.col.includes(f))) return;
-      o.anchor.push(w.id);
-    });
-    // afina con adjetivos del texto que aparezcan en el nombre de la prenda
     const tipoW=new Set(Object.values(GARMENTS).flat().map(norm));
-    const words=q.split(/[^a-z0-9]+/).filter(x=>x.length>3).map(x=>x.replace(/es$|s$/,""))
-                 .filter(x=>x.length>3&&!tipoW.has(x));
-    const fino=o.anchor.filter(id=>{const w=W.find(x=>x.id===id);return words.some(x=>w._n.includes(x));});
-    if(fino.length&&fino.length<o.anchor.length) o.anchor=fino;
+    const porCat={};
+    const anota=(g,cs,txt)=>{
+      if(o.no.includes(g)) return false;
+      let l=W.filter(w=>w.t===g&&(!cs.length||w._f.some(f=>cs.includes(f))));
+      if(!l.length) l=W.filter(w=>w.t===g);
+      if(!l.length) return false;
+      const words=txt.split(/[^a-z0-9]+/).filter(x=>x.length>3).map(x=>x.replace(/es$|s$/,""))
+                     .filter(x=>x.length>3&&!tipoW.has(x));
+      const fino=l.filter(w=>words.some(x=>w._n.includes(x)));
+      if(fino.length&&fino.length<l.length) l=fino;
+      const cat=l[0].cat, ids=l.map(w=>w.id);
+      porCat[cat]=porCat[cat]?[...new Set(porCat[cat].concat(ids))]:ids;
+      return true;
+    };
+    const trozos=q.split(/\s+(?:con|y|mas|junto a|encima de|debajo de|sobre)\s+|[,;+]/)
+                  .map(t=>t.trim()).filter(Boolean);
+    let hubo=false;
+    for(const t of trozos){
+      const cs=[]; for(const f in FAM) if(FAM[f].some(w=>t.includes(norm(w)))) cs.push(f);
+      for(const g in GARMENTS) if(GARMENTS[g].some(w=>t.includes(norm(w)))) hubo=anota(g,cs,t)||hubo;
+    }
+    // si el troceo no pesca nada (frase rara, sin conectores), se cae al modo de antes
+    if(!hubo) o.gar.forEach(g=>anota(g,o.col,q));
+    o.grupos=Object.keys(porCat).map(cat=>({cat,ids:porCat[cat]}));
+    o.anchor=[...new Set(o.grupos.reduce((a,gr)=>a.concat(gr.ids),[]))];
   }
   return o;
 }
@@ -455,11 +478,17 @@ function evalOutfit(o,p,items){
   if(p.tem.includes("invierno")){ if(!o.out) s-=3; else if(wm>=9) { s+=1; why.push("abriga"); } }
   if(p.tem.includes("verano")){ if(o.out) s-=2.2; if(o.mid) s-=1.4; if(wm<=6){ s+=1; why.push("ligero"); } }
 
-  if(p.anchorSet){
-    let anc=null;
-    for(const w of items){ if(p.anchorSet.has(w.id)){ anc=w; break; } }
-    if(!anc) return null;
-    s+=4; why.unshift("lleva tu "+anc.n.toLowerCase());
+  if(p.anchorG&&p.anchorG.length){
+    const nom=[]; let n=0;
+    for(const gr of p.anchorG){
+      const hit=items.find(w=>gr.has(w.id));
+      if(hit){ n++; nom.push(hit.n.toLowerCase()); }
+      else if(!p.anchorSoft) return null;
+    }
+    if(!n) return null;
+    // cumplir dos prendas pedidas vale mas que cumplir una
+    s+=4*(n/p.anchorG.length)+1.5*(n-1);
+    why.unshift("lleva tu "+nom.join(" y tu "));
   } else if(p.col.length){
     const cf=new Set(); for(const w of items) for(const f of w._f) cf.add(f);
     const hit=p.col.filter(c=>cf.has(c));
@@ -480,7 +509,12 @@ function enumerate(p){
   /* La temporada no se le aplica al calzado: un botin de cuero se usa todo el
      año en Lima, y filtrarlo en verano dejaba solo zapatillas, justo lo que no
      queremos para la oficina. */
-  const enTemp=w=>w.cat==="shoe"||!p.tem.length||w.te.includes("todo")||p.tem.some(t=>w.te.includes(t));
+  /* Una prenda que pides por su nombre no la filtra la temporada. Si dices "frio
+     con mi pantalon crema", el pantalon crema entra aunque este marcado como de
+     primavera y verano: lo pediste tu. Antes el filtro lo sacaba antes de mirar
+     las anclas y la consulta se quedaba sin ninguna combinacion posible. */
+  const anc=p.anchorSet;
+  const enTemp=w=>w.cat==="shoe"||(anc&&anc.has(w.id))||!p.tem.length||w.te.includes("todo")||p.tem.some(t=>w.te.includes(t));
   const keep=l=>l.filter(w=>!p.no.includes(w.t)&&enTemp(w)&&!EXCL.has(w.id));
   const bases=keep(BASE),tops=keep(TOP),shoes=keep(SHOE);
   const midOpts=[null,...keep(MID)], outOpts=[null,...keep(OUT)];
@@ -554,7 +588,11 @@ function diversify(all){
   const sample=all.slice(0,3000), lim={};
   SLOTS.forEach(k=>{ const s=new Set(); sample.forEach(c=>s.add(c.o[k]&&c.o[k].id)); lim[k]=s.size<=2?99:2; });
   const cap=(m,k,n)=>!k||(m[k]||0)<n;
-  const parecido=(a,b)=>{let n=0;SLOTS.forEach(k=>{if((a[k]&&a[k].id)===(b[k]&&b[k].id))n++;});return n;};
+  /* Solo cuentan las piezas que ambos llevan y son la misma. Contar tambien los
+     huecos vacios como coincidencia hacia que dos outfits de tres piezas se
+     parecieran en cuatro casillas por no llevar ninguno abrigo, y con anclas que
+     fijan pantalon y prenda de arriba eso dejaba una sola tarjeta en pantalla. */
+  const parecido=(a,b)=>{let n=0;SLOTS.forEach(k=>{const x=a[k]&&a[k].id,y=b[k]&&b[k].id;if(x&&y&&x===y)n++;});return n;};
 
   function admisible(c,maxDom,maxIgual){
     const o=c.o;
@@ -608,9 +646,13 @@ function diversify(all){
 function build(raw){
   const p=parse(raw);
   p.anchorSet=p.anchor.length?new Set(p.anchor):null;
+  p.anchorG=(p.grupos&&p.grupos.length)?p.grupos.map(gr=>new Set(gr.ids)):null;
   p.tight=p.est.includes("minimal")||p.est.includes("old money");
-  p.relax=false;
+  p.relax=false; p.anchorSoft=false;
   let all=enumerate(p);
+  /* si pedir dos o tres prendas a la vez no deja ninguna combinacion posible,
+     se aflojan las anclas antes que devolver una pantalla vacia, y se avisa */
+  if(!all.length&&p.anchorG&&p.anchorG.length>1){ p.anchorSoft=true; all=enumerate(p); }
   if(all.length<25&&p.occ){ p.relax=true; all=enumerate(p); }
   const pick=diversify(all);
   const tuck=!!(p.occ&&p.occ.tuck), modo=p.modoN||null;
@@ -776,7 +818,8 @@ function render(raw){
   if(p.modoN)bits.push("<b>Referencia:</b> "+MODOS[p.modoN].nota);
   if(p.est.length)bits.push("<b>Estilo:</b> "+p.est.join(", "));
   if(p.libre)bits.push("<b>Código relajado:</b> entran jeans y zapatillas");
-  if(p.anchor.length)bits.push("<b>Prenda obligatoria:</b> "+W.filter(w=>p.anchor.includes(w.id)).map(w=>w.n).join(" o "));
+  if(p.grupos&&p.grupos.length)bits.push("<b>"+(p.grupos.length>1?"Prendas obligatorias":"Prenda obligatoria")+":</b> "+
+    p.grupos.map(gr=>W.filter(w=>gr.ids.includes(w.id)).map(w=>w.n).join(" o ")).join(" <b>+</b> "));
   else if(p.gar.length)bits.push("<b>Prenda:</b> "+p.gar.join(", "));
   if(p.no.length)bits.push("<b>Sin:</b> "+p.no.join(", "));
   if(p.col.length&&!p.anchor.length)bits.push("<b>Color:</b> "+p.col.join(", "));
@@ -784,6 +827,7 @@ function render(raw){
   read.style.display="block";
   let txt=bits.length?("Leí esto: "+bits.join(" · ")+" <span style='color:#bbb'>· "+total.toLocaleString("es")+" combinaciones válidas</span>")
     :"No reconocí ocasión, estilo ni prendas. Prueba mencionando una prenda concreta, un color y para qué es.";
+  if(p.anchorSoft) txt+="<div style='margin-top:8px;color:var(--warn)'><b>Esas prendas juntas no dan ningún outfit válido.</b> Puede ser por temporada, por código de vestimenta o porque las dos ocupan el mismo lugar. Abajo van las combinaciones que cumplen al menos una de las que pediste, ordenadas por cuántas cumplen.</div>";
   if(p.relax&&p.occ) txt+="<div style='margin-top:8px;color:var(--warn)'><b>Tu ropa no llega a esa formalidad.</b> El conjunto más formal que puedes armar hoy queda en "+TECHO.toFixed(1)+"/5, y "+p.occ.l+" pide "+p.occ.r[0]+"–"+p.occ.r[1]+". Abajo va lo más cercano. Para cerrar esa brecha te falta un saco oscuro y una camisa blanca de vestir.</div>";
   read.innerHTML=txt;
 
