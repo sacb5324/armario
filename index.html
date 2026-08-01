@@ -138,15 +138,25 @@ dialog::backdrop{background:rgba(28,26,23,.55)}
   </div>
 
   <div class="panel" id="p4">
-    <div class="note"><b>Qué hace la app.</b> Recorre todas las combinaciones posibles de tus prendas (pantalón + prenda de arriba + capa media opcional + abrigo opcional + calzado), puntúa cada una con las reglas sacadas de tus pines y te devuelve las seis mejores, armadas con tus propias fotos.</div>
+    <div class="note"><b>Qué hace la app.</b> Recorre todas las combinaciones posibles de tus prendas (pantalón + prenda de arriba + capa media opcional + abrigo opcional + calzado), puntúa cada una con las reglas sacadas de tus pines y te devuelve seis, armadas con tus propias fotos. Seis de la franja alta, no siempre las mismas seis.</div>
     <div class="note"><b>Cómo puntúa.</b> Armonía de color según cuántas veces esas familias conviven en tus pines. Formalidad del conjunto dentro del rango de la ocasión. Coherencia térmica con la temporada. Penaliza mezclar registros muy distintos (una sudadera bajo un saco) y repetir color sin que sea un tonal deliberado. La prenda que menciones entra sí o sí.</div>
     <div class="note"><b>Tu perfil.</b> El motor sabe que metes polo, camisa y chompa por dentro del pantalón de vestir, pero no la camiseta ni con jeans; que tienes tres cinturones (negro, marrón y camel) y que van a tono con el calzado, así que te dice cuál toca en cada outfit; y lleva tu descripción física para que el prompt de imagen salga parecido a ti. Está en la carpeta como <b>FOTO_REFERENCIA_SERGIO.jpeg</b>, la que pegas junto al prompt.</div>
     <div class="note"><b>Tus dos referencias.</b> Escribe <b>estilo Tom Holland</b> y el motor tira a neutros tonales, capas limpias y formalidad 2–4. Escribe <b>estilo Damiano David</b> y tira a paleta oscura, más contraste y hasta formalidad 5. Son modos que pides, no un ajuste fijo, porque empujan para lados distintos y conviene poder elegir según el día.</div>
     <div class="note"><b>El código de vestimenta manda sobre el color.</b> Si dices oficina, trabajo, entrevista, boda o evento, quedan descartadas las zapatillas y los jeans antes de puntuar nada: no es una penalización que compita con la paleta, es una condición previa. Además el motor asume la prenda de arriba por dentro del pantalón y te lo pone en el prompt. Para levantarlo tienes que decirlo: <b>viernes</b>, <b>casual</b>, <b>sport</b>, <b>informal</b> o <b>relajado</b> abren los jeans y las zapatillas y bajan un punto la formalidad mínima.</div>
-    <div class="note"><b>Los cuatro botones de cada outfit.</b> <b>Me queda bien</b> guarda esa combinación de colores como regla y la sube en el orden de ahí en adelante. <b>No me convence</b> hace lo contrario, resta evidencia y cambia la tarjeta por la siguiente mejor; un descarte no tumba una regla respaldada por ocho pines, solo la mueve hacia abajo. <b>Otra</b> cambia la tarjeta sin aprender nada, para cuando el outfit está bien pero hoy no te provoca. Lo que aprende con los pulgares se aplica desde la siguiente búsqueda, no a las tarjetas que ya están en pantalla.</div>
+    <div class="note"><b>Los cuatro botones de cada outfit.</b> <b>Me queda bien</b> guarda esa combinación de colores como regla y la sube en el orden de ahí en adelante. <b>No me convence</b> hace lo contrario, resta evidencia y cambia la tarjeta por otra alternativa buena, sorteada entre las mejores disponibles y evitando lo que ya viste; un descarte no tumba una regla respaldada por ocho pines, solo la mueve hacia abajo. <b>Otra</b> cambia la tarjeta sin aprender nada, para cuando el outfit está bien pero hoy no te provoca. Lo que aprende con los pulgares se aplica desde la siguiente búsqueda, no a las tarjetas que ya están en pantalla.</div>
     <div class="note"><b>La cruz sobre cada prenda.</b> Si tienes algo sucio, prestado o en la tintorería, pasa el cursor por su foto y toca la ✕. Esa prenda sale de circulación y el motor rearma las seis opciones sin ella. Aparece arriba en una lista para que la devuelvas cuando esté lista. Se guarda en el navegador, así que sigue fuera si cierras la app.</div>
     <div class="note"><b>El botón "Prompt IA".</b> Cada outfit genera el texto listo para pegar en ChatGPT o Gemini junto con una foto tuya de cuerpo entero, y te devuelve la imagen fotorrealista como los tableros que ya armaste. La app no genera esas imágenes: arma el conjunto y te da el encargo exacto.</div>
+    <div class="note"><b>Cada búsqueda te da opciones distintas.</b> El motor ya no te devuelve siempre las seis mejores del ranking, que era lo que hacía que la misma pregunta diera siempre lo mismo. Ahora sortea dentro de la franja alta dando más peso a lo que puntúa mejor, baja lo que te enseñó en las últimas dos semanas, reserva dos de las seis tarjetas para prendas que llevan tiempo sin salir y no deja que un mismo acento de color ocupe más de la mitad. Si vuelves a pulsar Armar con la misma frase, sale otra cosa.</div>
     <div class="note"><b>Todo pasa en tu navegador.</b> No hay servidor, no hay llamadas a ninguna IA, no consume nada. Funciona sin internet.</div>
+
+    <h3 class="sec">Tus votos</h3>
+    <div class="note"><b>Dónde se guardan.</b> Lo que marcas con «me queda bien» y «no me convence» se guarda en el navegador donde lo marcaste. Si votas desde el celular, esos votos no existen en la computadora, y al revés. Con estos botones los mueves de un lado a otro: exportas en un dispositivo, pasas el archivo y lo importas en el otro. El historial de lo ya mostrado no viaja: es local y desechable.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px">
+      <button class="mini" id="vexp">Exportar mis votos</button>
+      <label class="mini" style="cursor:pointer">Importar votos<input type="file" id="vimp" accept="application/json,.json" style="display:none"></label>
+      <button class="mini" id="volv">Olvidar lo ya mostrado</button>
+    </div>
+    <div id="vmsg" class="note" style="display:none"></div>
   </div>
 </div>
 
@@ -489,37 +499,110 @@ function enumerate(p){
   all.sort((a,b)=>b.s-a.s);
   return all;
 }
-/* seis outfits que se vean distintos entre si */
+/* ---------- memoria de lo que ya te enseñe ----------
+   Sin esto el motor era una funcion determinista: la misma consulta devolvia
+   siempre exactamente las mismas seis tarjetas, hoy y en diciembre. */
+const HISK="armario_historial_v1";
+const HIS_DIAS=14, HIS_TOPE=300;
+const hisRaw=()=>LS.get(HISK,"[]").filter(x=>x&&x.k&&x.t>Date.now()-HIS_DIAS*864e5);
+function hisAdd(keys){
+  const h=hisRaw().concat(keys.filter(Boolean).map(k=>({k,t:Date.now()})));
+  LS.set(HISK,h.slice(-HIS_TOPE));
+}
+function hisEstado(){
+  const h=hisRaw(), prendas={};
+  h.forEach(x=>x.k.split("|").forEach(id=>{ if(id) prendas[id]=(prendas[id]||0)+1; }));
+  return {outfits:new Set(h.map(x=>x.k)), prendas};
+}
+function hisReset(){ LS.set(HISK,[]); }
+
+/* seis outfits distintos entre si Y distintos de los que ya viste.
+   Antes se tomaban los seis primeros de la lista ordenada por puntaje. Con
+   214.000 combinaciones validas eso mostraba siempre las mismas 15 prendas y
+   dejaba 17 del armario sin salir nunca. Ahora se sortea dentro de la franja
+   alta, pesa mas lo que puntua mejor, baja lo que enseñe hace poco, dos de las
+   seis se reservan para prendas frescas y ninguna paleta ocupa mas de la mitad. */
 function diversify(all){
-  const pick=[], use={base:{},out:{},shoe:{},top:{},mid:{}}, layers={};
-  // si un slot casi no tiene alternativas (p. ej. anclaste una prenda) no se le pone tope
+  if(!all.length) return [];
+  const kOf=o=>SLOTS.map(k=>o[k]&&o[k].id).join("|");
+  const H=hisEstado(), top=all[0].s;
+
+  // franja de candidatos: cerca del mejor puntaje, con piso y techo por velocidad
+  let cand=all.filter(c=>c.s>=top*0.78);
+  if(cand.length<80) cand=all.slice(0,Math.min(80,all.length));
+  if(cand.length>800) cand=cand.slice(0,800);
+
+  const T=Math.max(.45,top*.06);   // temperatura del sorteo, en unidades de puntaje
+  cand.forEach(c=>{
+    const o=c.o; let pen=H.outfits.has(c._k=kOf(o))?2.2:0;
+    const cnt={};
+    SLOTS.forEach(s=>{ const w=o[s]; if(!w) return;
+      pen+=Math.min(3,H.prendas[w.id]||0)*.18;
+      (w._f||[]).forEach(f=>cnt[f]=(cnt[f]||0)+1); });
+    c._adj=c.s-pen;
+    c._fresco=SLOTS.some(s=>o[s]&&!H.prendas[o[s].id]);
+    /* La paleta se clasifica por el ACENTO, no por el color mas repetido. Sergio
+       tiene 24 prendas de familia beige sobre 62, asi que agrupar por lo mas
+       frecuente daba "beige" en casi todas las tarjetas y el tope no separaba
+       nada. El acento (olivo, azul, vino, rosa) si distingue de verdad. */
+    const ac=Object.entries(cnt).filter(x=>!NEUTRAL.has(x[0])).sort((a,b)=>b[1]-a[1])[0];
+    const nu=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+    c._dom=ac?ac[0]:(nu?"neutro:"+nu[0]:"-");
+  });
+
+  const pick=[], use={base:{},out:{},shoe:{},top:{},mid:{}}, dom={};
   const sample=all.slice(0,3000), lim={};
   SLOTS.forEach(k=>{ const s=new Set(); sample.forEach(c=>s.add(c.o[k]&&c.o[k].id)); lim[k]=s.size<=2?99:2; });
   const cap=(m,k,n)=>!k||(m[k]||0)<n;
-  for(const pass of [1,2]){
-    for(const c of all){
-      if(pick.length>=6) break;
-      const o=c.o, L=(o.mid?1:0)+(o.out?1:0);
-      // el calzado y el pantalon nunca se repiten mas de dos veces, en ninguna pasada
-      if(!cap(use.shoe,o.shoe.id,lim.shoe)||!cap(use.base,o.base.id,lim.base)) continue;
-      if(o.out&&!cap(use.out,o.out.id,lim.out)) continue;
-      if(pass===1){
-        if(!cap(use.top,o.top.id,lim.top)) continue;
-        if(o.mid&&!cap(use.mid,o.mid.id,lim.mid)) continue;
-        if((layers[L]||0)>=4) continue;
-      }
-      const dup=pick.some(x=>{let same=0;SLOTS.forEach(k=>{if((x.o[k]&&x.o[k].id)===(o[k]&&o[k].id))same++;});return same>=4;});
-      if(dup) continue;
-      pick.push(c);
-      use.base[o.base.id]=(use.base[o.base.id]||0)+1;
-      use.shoe[o.shoe.id]=(use.shoe[o.shoe.id]||0)+1;
-      use.top[o.top.id]=(use.top[o.top.id]||0)+1;
-      if(o.mid) use.mid[o.mid.id]=(use.mid[o.mid.id]||0)+1;
-      if(o.out) use.out[o.out.id]=(use.out[o.out.id]||0)+1;
-      layers[L]=(layers[L]||0)+1;
-    }
-    if(pick.length>=6) break;
+  const parecido=(a,b)=>{let n=0;SLOTS.forEach(k=>{if((a[k]&&a[k].id)===(b[k]&&b[k].id))n++;});return n;};
+
+  function admisible(c,maxDom,maxIgual){
+    const o=c.o;
+    if(!cap(use.shoe,o.shoe.id,lim.shoe)||!cap(use.base,o.base.id,lim.base)) return false;
+    if(o.out&&!cap(use.out,o.out.id,lim.out)) return false;
+    if((dom[c._dom]||0)>=maxDom) return false;
+    return !pick.some(x=>parecido(x.o,o)>=maxIgual);
   }
+  function anotar(c){
+    const o=c.o; pick.push(c);
+    use.base[o.base.id]=(use.base[o.base.id]||0)+1;
+    use.shoe[o.shoe.id]=(use.shoe[o.shoe.id]||0)+1;
+    use.top[o.top.id]=(use.top[o.top.id]||0)+1;
+    if(o.mid) use.mid[o.mid.id]=(use.mid[o.mid.id]||0)+1;
+    if(o.out) use.out[o.out.id]=(use.out[o.out.id]||0)+1;
+    dom[c._dom||"-"]=(dom[c._dom||"-"]||0)+1;
+  }
+  /* sorteo ponderado: exp((puntaje-mejor)/T). Medio punto por debajo del mejor
+     pesa como un tercio, dos puntos por debajo casi no sale. Hay azar, pero no
+     es una tombola: lo bueno sigue ganando casi siempre. */
+  function sortear(pool){
+    let tot=0; const ws=pool.map(c=>{const w=Math.exp((c._adj-top)/T); tot+=w; return w;});
+    let r=Math.random()*tot;
+    for(let i=0;i<pool.length;i++){ r-=ws[i]; if(r<=0) return pool[i]; }
+    return pool[pool.length-1];
+  }
+  const rondas=[
+    {f:c=>c._fresco, hasta:2, dom:2, ig:3},   // cuota de prendas que llevan tiempo sin salir
+    {f:()=>true,     hasta:5, dom:3, ig:3},
+    {f:()=>true,     hasta:6, dom:4, ig:4}
+  ];
+  for(const R of rondas){
+    let guard=0;
+    while(pick.length<R.hasta && guard++<50){
+      const libres=cand.filter(c=>R.f(c)&&pick.indexOf(c)<0&&admisible(c,R.dom,R.ig));
+      if(!libres.length) break;
+      anotar(sortear(libres));
+    }
+  }
+  // red de seguridad: si la consulta es muy estrecha, se completa al modo clasico
+  for(const c of all){
+    if(pick.length>=6) break;
+    if(pick.indexOf(c)>=0) continue;
+    if(pick.some(x=>parecido(x.o,c.o)>=4)) continue;
+    if(!c._k) c._k=kOf(c.o);
+    anotar(c);
+  }
+  hisAdd(pick.map(c=>c._k));
   return pick;
 }
 function build(raw){
@@ -531,7 +614,7 @@ function build(raw){
   if(all.length<25&&p.occ){ p.relax=true; all=enumerate(p); }
   const pick=diversify(all);
   const tuck=!!(p.occ&&p.occ.tuck), modo=p.modoN||null;
-  const pool=all.slice(0,1500);
+  const pool=all.slice(0,4000);
   pick.forEach(c=>{c.tuck=tuck;c.modo=modo;}); pool.forEach(c=>{c.tuck=tuck;c.modo=modo;});
   // se guarda solo la cabeza de la lista: alcanza de sobra para reemplazar tarjetas
   return {p,pick,total:all.length,pool};
@@ -622,13 +705,26 @@ function siguiente(salvo){
   const otros=LAST.filter((_,i)=>i!==salvo);
   const vistos=new Set(LAST.map(c=>keyOf(c.o)));
   const viejo=LAST[salvo].o;
-  // dos pasadas: primero un cambio de verdad (dos piezas o mas), si no hay, lo que sea distinto
-  for(const minCambio of [2,1]){
+  const hist=hisEstado().outfits;
+  /* Cuatro pasadas de mas exigente a menos: primero un cambio de verdad (dos
+     piezas o mas) y que no sea nada que ya te haya enseñado; al final, lo que
+     sea distinto. Dentro de cada pasada se sortea entre las 40 mejores en vez
+     de devolver siempre la primera, que era lo que hacia que el boton diera
+     siempre la misma alternativa. */
+  for(const [minCambio,evitarHist] of [[2,true],[2,false],[1,true],[1,false]]){
+    const aptos=[];
     for(const c of POOL){
       if(vistos.has(keyOf(c.o))) continue;
+      if(evitarHist&&hist.has(keyOf(c.o))) continue;
       if(SLOTS.some(k=>c.o[k]&&EXCL.has(c.o[k].id))) continue;
       if(5-iguales(c.o,viejo)<minCambio) continue;
       if(otros.some(x=>iguales(x.o,c.o)>=4)) continue;
+      aptos.push(c);
+      if(aptos.length>=40) break;
+    }
+    if(aptos.length){
+      const c=aptos[Math.floor(Math.random()*aptos.length)];
+      hisAdd([keyOf(c.o)]);
       return c;
     }
   }
@@ -763,6 +859,43 @@ document.getElementById("pcopy").onclick=async()=>{
   const b=document.getElementById("pcopy"); b.textContent="Copiado"; b.classList.add("done");
   setTimeout(()=>{b.textContent="Copiar";b.classList.remove("done");},1600);
 };
+
+/* ---------- exportar / importar votos ----------
+   Los votos viven en el localStorage del navegador donde los diste. Con la app
+   publicada en internet y usandola desde el celular y desde la PC, son dos
+   memorias separadas que no se ven entre si. Esto las junta a mano. */
+function vmsg(t){ const e=document.getElementById("vmsg"); e.style.display="block"; e.innerHTML=t; }
+document.getElementById("vexp").onclick=()=>{
+  const d={app:"armario",v:1,fecha:new Date().toISOString()};
+  [FBK,FBN,EXK].forEach(k=>d[k]=LS.get(k,"[]"));
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:"application/json"}));
+  a.download="armario_votos_"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+  vmsg("Archivo descargado con <b>"+fbGet().length+"</b> «me queda bien» y <b>"+ngGet().length+"</b> descartes. Pásalo al otro dispositivo y ábrelo ahí con «Importar votos».");
+};
+document.getElementById("vimp").onchange=e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    let d; try{ d=JSON.parse(r.result); }catch(err){ vmsg("No pude leer ese archivo."); return; }
+    if(!d||d.app!=="armario"){ vmsg("Ese archivo no es un respaldo de votos de esta app."); return; }
+    let n=0;
+    [FBK,FBN].forEach(k=>{
+      const acum=LS.get(k,"[]"), visto=new Set(acum.map(x=>JSON.stringify(x)));
+      (Array.isArray(d[k])?d[k]:[]).forEach(x=>{ const s=JSON.stringify(x);
+        if(!visto.has(s)){ visto.add(s); acum.push(x); n++; } });
+      LS.set(k,acum);
+    });
+    if(Array.isArray(d[EXK])) LS.set(EXK,[...new Set(LS.get(EXK,"[]").concat(d[EXK]))]);
+    vmsg(n?("Importados <b>"+n+"</b> votos que no tenías aquí. Recargando para aplicarlos…")
+          :"Ese archivo no traía ningún voto nuevo: ya los tenías todos.");
+    if(n) setTimeout(()=>location.reload(),1000);
+  };
+  r.readAsText(f);
+};
+document.getElementById("volv").onclick=()=>{ hisReset();
+  vmsg("Hecho. El motor vuelve a tratar todos los outfits como no vistos."); };
 </script>
 </body>
 </html>
